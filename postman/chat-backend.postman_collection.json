@@ -1,0 +1,441 @@
+{
+  "info": {
+    "name": "Chat Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "userAId",
+      "value": ""
+    },
+    {
+      "key": "userBId",
+      "value": ""
+    },
+    {
+      "key": "chatId",
+      "value": ""
+    },
+    {
+      "key": "messageId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "Sanity check that the server is up."
+      }
+    },
+    {
+      "name": "1. Create User A (Alice)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Alice\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Run once. Saves userAId."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.collectionVariables.set('userAId', j.id);",
+              "pm.test('saved userAId', () => pm.expect(j.id).to.be.a('string'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Create User B (Bob)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Bob\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Run once. Saves userBId."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.collectionVariables.set('userBId', j.id);",
+              "pm.test('saved userBId', () => pm.expect(j.id).to.be.a('string'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Create or Get Chat",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/chat/create",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "chat",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userAId\": \"{{userAId}}\",\n  \"userBId\": \"{{userBId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "201 first time, 200 if chat already exists. Saves chatId."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.collectionVariables.set('chatId', j.chatId);",
+              "pm.test('saved chatId', () => pm.expect(j.chatId).to.be.a('string'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Send Message (as A)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/chat/{{chatId}}/message/send",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "chat",
+            "{{chatId}}",
+            "message",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"senderId\": \"{{userAId}}\",\n  \"text\": \"Hello Bob!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Run as many times as you like. Saves the latest messageId."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.collectionVariables.set('messageId', j.id);",
+              "pm.test('saved messageId', () => pm.expect(j.id).to.be.a('string'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Send Message (as B)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/chat/{{chatId}}/message/send",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "chat",
+            "{{chatId}}",
+            "message",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"senderId\": \"{{userBId}}\",\n  \"text\": \"Hi Alice!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Reply from the other user."
+      }
+    },
+    {
+      "name": "6. Get Messages",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/chat/{{chatId}}/messages?limit=50",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "chat",
+            "{{chatId}}",
+            "messages"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        },
+        "description": "Oldest to newest, latest N messages."
+      }
+    },
+    {
+      "name": "7. Mark Message Read (B reads A's message)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/chat/{{chatId}}/message/{{messageId}}/read",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "chat",
+            "{{chatId}}",
+            "message",
+            "{{messageId}}",
+            "read"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userBId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Reader must be a member and not the sender. Idempotent."
+      }
+    },
+    {
+      "name": "8. Update Last Seen (B)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/chat/{{chatId}}/lastseen",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "chat",
+            "{{chatId}}",
+            "lastseen"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userBId}}\",\n  \"messageId\": \"{{messageId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Stores last seen message for the user."
+      }
+    },
+    {
+      "name": "9. List User Chats (A)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/user/{{userAId}}/chats",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "user",
+            "{{userAId}}",
+            "chats"
+          ]
+        },
+        "description": "Chats with member IDs from PostgreSQL."
+      }
+    },
+    {
+      "name": "10. Edit Message (bonus, A)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/chat/{{chatId}}/message/{{messageId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "chat",
+            "{{chatId}}",
+            "message",
+            "{{messageId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userAId}}\",\n  \"text\": \"Hello Bob! (edited)\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Only the sender can edit."
+      }
+    },
+    {
+      "name": "11. Delete Message (bonus, A)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/chat/{{chatId}}/message/{{messageId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "chat",
+            "{{chatId}}",
+            "message",
+            "{{messageId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userAId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Soft delete. Only the sender. Returns 204."
+      }
+    }
+  ]
+}
